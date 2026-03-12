@@ -6,7 +6,7 @@ NUM_FINE_CLASSES = 10
 INPUT_CHANNELS = 3 
 INPUT_SIZE = 32
 FEATURE_DIM = 512          # ResNet-18 penultimate layer
-
+NUM_WORKERS = 1
 
 # Human-readable names mapped to our remapped labels
 COARSE_CLASSES = {
@@ -27,12 +27,14 @@ FINE_CLASSES = {
     'turtle':       9,
 }
 
+# Original CIFAR-100 coarse labels: https://www.cs.toronto.edu/~kriz/cifar.html (they're in the order they appear in the dataset)
 # Maps original CIFAR-100 coarse index to project's coarse label
 COARSE_REMAP = {
     18: 0,  # vehicles_1 -> 0
     15: 1,  # reptiles   -> 1
 }
 
+# Used the helper script helpers/get_labels.py to get the original fine label ids for our target classes
 # Maps original CIFAR-100 fine index -> our remapped fine label
 FINE_REMAP = {
     # vehicles_1
@@ -49,11 +51,10 @@ FINE_REMAP = {
     93: 9,  # turtle
 }
 
-# Maps our remapped coarse label -> list of our remapped fine labels
-# Useful for init_coarse_from_fine() in the model
-COARSE_TO_FINE = {
-    0: [0, 1, 2, 3, 4],  # vehicles_1
-    1: [5, 6, 7, 8, 9],  # reptiles
+# Maps our remapped fine label -> our remapped coarse label
+FINE_TO_COARSE = {
+    0 : 0, 1 : 0, 2 : 0, 3 : 0, 4 : 0,
+    5 : 1, 6 : 1, 7 : 1, 8 : 1, 9 : 1,  
 }
 
 # Training defaults
@@ -66,6 +67,7 @@ DEFAULT_EPOCHS_PER_TASK = 50
 DEFAULT_FISHER_SAMPLES = 2000
 
 # Paths
+DATASETS_DIR = "datasets"
 CHECKPOINT_DIR = "results/checkpoints"
 LOG_DIR = "results/logs"
 FIGURE_DIR = "results/figures"

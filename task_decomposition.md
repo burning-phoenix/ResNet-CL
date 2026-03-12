@@ -81,8 +81,8 @@ def get_cifar100_loaders(batch_size=128, augment=True):
     Returns:
         train_loader: yields (x, y_coarse, y_fine)
             x: Tensor (B, 3, 32, 32), normalized
-            y_coarse: Tensor (B,), values in 0..19
-            y_fine: Tensor (B,), values in 0..99
+            y_coarse: Tensor (B,), values in 0..2
+            y_fine: Tensor (B,), values in 0..9
         test_loader: same format, no augmentation
     """
 ```
@@ -235,8 +235,8 @@ from data.cifar100 import get_cifar100_loaders
 train_loader, test_loader = get_cifar100_loaders()
 x, y_c, y_f = next(iter(train_loader))
 assert x.shape == (128, 3, 32, 32)
-assert y_c.max() <= 19
-assert y_f.max() <= 99
+assert y_c.max() <= 1
+assert y_f.max() <= 9
 ```
 
 **Post in chat when ready for review:** "REVIEW REQUEST: S2, branch `shashwat/data-loader`. Data loader with dual labels. Run `python -m pytest tests/test_data.py`. Reviewer: Emre."
@@ -570,7 +570,7 @@ These are the minimum checks. The **author** must verify all items in their sect
 | Check | Author | Reviewer |
 |-------|--------|----------|
 | Batch shape is (B, 3, 32, 32), (B,), (B,) | [ ] | [ ] |
-| y_coarse values ∈ {0..19}, y_fine values ∈ {0..99} | [ ] | [ ] |
+| y_coarse values ∈ {0..1}, y_fine values ∈ {0..9} | [ ] | [ ] |
 | Every fine class maps to exactly one coarse class | [ ] | [ ] |
 | Augmentation applies only to train, not test | [ ] | [ ] |
 | Train and test sets have the expected sample counts (50k / 10k) | [ ] | [ ] |

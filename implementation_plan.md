@@ -10,7 +10,7 @@
 
 **Dataset:** CIFAR-100 (60,000 images, 100 fine classes, 20 superclasses)
 
-The dataset provides a native two-level hierarchy. Every image carries both a fine label (0–99) and a coarse label (0–19). No manual mapping is needed.
+The dataset provides a native two-level hierarchy. Every image carries both a fine label (0–9) and a coarse label (0–1). No manual mapping is needed.
 
 ```
 LOAD_DATASET():
@@ -74,7 +74,7 @@ When transitioning from fine (100-class) to coarse (20-class), randomly initiali
 
 ```
 INITIALIZE_COARSE_FROM_FINE(head_fine, head_coarse):
-    For each superclass s in 0..19:
+    For each superclass s in 0..1:
         child_indices ← list of fine-class indices belonging to superclass s
         head_coarse.weight[s] ← MEAN(head_fine.weight[child_indices], dim=0)
         head_coarse.bias[s]   ← MEAN(head_fine.bias[child_indices])
