@@ -32,6 +32,10 @@ class MultiHeadLogReg(nn.Module):
             return self.fine_head(x_new)
         raise ValueError(f"Unsupported task_id '{task_id}'. Use 'coarse' or 'fine'.")
     
+    def get_backbone_params(self):
+        """Returns iterator over shared backbone parameters only."""
+        return self.backbone.parameters()
+    
     def get_features(self, x: torch.Tensor) -> torch.Tensor:
         """Returns 512-dim feature vectors (B, 512). For embedding extraction."""
         return self.backbone(x)
