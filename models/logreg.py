@@ -25,12 +25,16 @@ class MultiHeadLogReg(nn.Module):
         Returns:
             logits: Tensor (B, 2) or (B, 10)
         """
-        x = self.backbone(x)
+        x_new = self.get_features(x)
         if task_id == "coarse":
-            return self.coarse_head(x)
+            return self.coarse_head(x_new)
         if task_id == "fine":
-            return self.fine_head(x)
+            return self.fine_head(x_new)
         raise ValueError(f"Unsupported task_id '{task_id}'. Use 'coarse' or 'fine'.")
+    
+    def get_features(self, x: torch.Tensor) -> torch.Tensor:
+        """Returns 512-dim feature vectors (B, 512). For embedding extraction."""
+        return self.backbone(x)
 
     def freeze_head(self, task_id: str) -> None:
         """Sets requires_grad=False for all parameters in the specified head."""
