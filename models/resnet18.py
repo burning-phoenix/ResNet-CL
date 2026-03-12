@@ -53,23 +53,15 @@ class MultiHeadResNet18(nn.Module):
 
     def init_coarse_from_fine(self) -> None:
         """Aggregates fine-head weights/biases into the coarse head."""
-        
         children_by_coarse = {}
         for coarse_id in range(NUM_COARSE_CLASSES):
             children_by_coarse[coarse_id] = []
 
         for fine_id in range(NUM_FINE_CLASSES):
-            if fine_id not in FINE_TO_COARSE:
-                raise ValueError(f"Missing fine->coarse mapping for fine class {fine_id}.")
             coarse_id = FINE_TO_COARSE[fine_id]
-            if not (0 <= coarse_id < NUM_COARSE_CLASSES):
-                raise ValueError(f"Invalid coarse class id {coarse_id} for fine class {fine_id}")
             children_by_coarse[coarse_id].append(fine_id)
 
         with torch.no_grad():
             for coarse_id, fine_ids in children_by_coarse.items():
-                if not fine_ids:
-                    raise ValueError(f"Coarse class {coarse_id} has no child fine classes in mapping")
-
                 self.coarse_head.weight[coarse_id] = self.fine_head.weight[fine_ids].mean(dim=0)
                 self.coarse_head.bias[coarse_id] = self.fine_head.bias[fine_ids].mean()
