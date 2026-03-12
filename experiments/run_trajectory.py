@@ -41,7 +41,7 @@ def experiment(trajectory, condition, lambda_ewc, lambda_l2, seed):
     
     penalty_fn = None
     if condition == "ewc":
-        fisher_dict = compute_fisher(model, train_loader, DEFAULT_FISHER_SAMPLES)
+        fisher_dict = compute_fisher(model, train_loader, DEFAULT_FISHER_SAMPLES) # No variant since removed as per Teams message
         penalty_fn = lambda m: ewc_penalty(m, fisher_dict, Tstar, lambda_ewc)
     elif condition == "l2":
         penalty_fn = lambda m: l2_cl_penalty(m, Tstar, lambda_l2)
