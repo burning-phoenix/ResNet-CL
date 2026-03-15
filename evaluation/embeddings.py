@@ -1,5 +1,7 @@
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from sklearn.metrics import silhouette_score, davies_bouldin_score
 
 
 def extract_embeddings(model, test_loader: DataLoader):
@@ -33,3 +35,28 @@ def extract_embeddings(model, test_loader: DataLoader):
     labels_fine = torch.cat(all_fine, dim=0)
 
     return embeddings, labels_coarse, labels_fine
+
+
+def compute_cluster_metrics(embeddings, labels):
+    """
+    Compute clustering quality metrics from embeddings and labels.
+
+    Args:
+        embeddings: Tensor or array of shape (N, D)
+        labels: Tensor or array of shape (N,)
+
+    Returns:
+        dict: {silhouette_score, davies_bouldin_index}
+    """
+    embeddings_np = np.array(embeddings.detach().cpu().tolist())
+    labels_np = np.array(labels.detach().cpu().tolist())
+
+    silhouette = float(silhouette_score(embeddings_np, labels_np))
+    davies_bouldin = float(davies_bouldin_score(embeddings_np, labels_np))
+
+    metrics = {
+        "silhouette_score": silhouette,
+        "davies_bouldin_index": davies_bouldin,
+    }
+
+    return metrics
