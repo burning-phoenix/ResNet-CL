@@ -42,8 +42,8 @@ def compute_cluster_metrics(embeddings, labels):
     Compute clustering quality metrics from embeddings and labels.
 
     Args:
-        embeddings: Tensor or array of shape (N, D)
-        labels: Tensor or array of shape (N,)
+        embeddings: (N, 512), raw high-dim
+        labels: (N,), superclass-level labels for clustering eval
 
     Returns:
         dict: {silhouette_score, davies_bouldin_index}
