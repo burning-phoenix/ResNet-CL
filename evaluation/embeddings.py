@@ -1,4 +1,3 @@
-import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from sklearn.metrics import silhouette_score, davies_bouldin_score
@@ -48,8 +47,8 @@ def compute_cluster_metrics(embeddings, labels):
     Returns:
         dict: {silhouette_score, davies_bouldin_index}
     """
-    embeddings_np = np.array(embeddings.detach().cpu().tolist())
-    labels_np = np.array(labels.detach().cpu().tolist())
+    embeddings_np = embeddings.detach().cpu().numpy()
+    labels_np = labels.detach().cpu().numpy()
 
     silhouette = float(silhouette_score(embeddings_np, labels_np))
     davies_bouldin = float(davies_bouldin_score(embeddings_np, labels_np))
