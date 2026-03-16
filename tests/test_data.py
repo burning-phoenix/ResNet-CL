@@ -6,7 +6,7 @@ ROOT = './datasets'
 
 @pytest.fixture(scope='module')
 def loaders():
-    train_loader, test_loader = get_cifar100_loaders(batch_size=128)
+    train_loader, test_loader = get_cifar100_loaders(batch_size=128, subset="all")
     return train_loader, test_loader
 
 @pytest.fixture(scope='module')
@@ -24,12 +24,12 @@ def test_batch_shape(batch):
 def test_coarse_label_range(batch):
     _, y_c, _ = batch
     assert y_c.min() >= 0
-    assert y_c.max() <= 1   # only 2 superclasses
+    assert y_c.max() <= 1
 
 def test_fine_label_range(batch):
     _, _, y_f = batch
     assert y_f.min() >= 0
-    assert y_f.max() <= 9  # only 10 fine classes
+    assert y_f.max() <= 9
 
 def test_fine_to_coarse_consistency(loaders):
     """Every fine label maps to exactly one coarse label."""
@@ -43,7 +43,39 @@ def test_fine_to_coarse_consistency(loaders):
             else:
                 fine_to_coarse[f] = c
 
-def test_sample_counts(loaders):
+def test_sample_counts_all(loaders):
     train_loader, test_loader = loaders
     assert len(train_loader.dataset) == 5000
     assert len(test_loader.dataset) == 1000
+
+def test_sample_counts_subset_a():
+    train_loader, test_loader = get_cifar100_loaders(batch_size=128, subset="A")
+    assert len(train_loader.dataset) == 2500
+    assert len(test_loader.dataset) == 1000  # test always full
+
+def test_sample_counts_subset_b():
+    train_loader, test_loader = get_cifar100_loaders(batch_size=128, subset="B")
+    assert len(train_loader.dataset) == 2500
+    assert len(test_loader.dataset) == 1000  # test always full
+
+def test_subsets_are_disjoint():
+    """A and B must share no training samples."""
+    loader_a, _ = get_cifar100_loaders(batch_size=128, subset="A")
+    loader_b, _ = get_cifar100_loaders(batch_size=128, subset="B")
+    indices_a = set(loader_a.dataset.indices)
+    indices_b = set(loader_b.dataset.indices)
+    assert indices_a.isdisjoint(indices_b), "Subsets A and B overlap!"
+
+def test_subsets_union_equals_all():
+    """A ∪ B must equal the full training set."""
+    loader_a,   _ = get_cifar100_loaders(batch_size=128, subset="A")
+    loader_b,   _ = get_cifar100_loaders(batch_size=128, subset="B")
+    loader_all, _ = get_cifar100_loaders(batch_size=128, subset="all")
+    indices_a   = set(loader_a.dataset.indices)
+    indices_b   = set(loader_b.dataset.indices)
+    indices_all = set(loader_all.dataset.indices)
+    assert indices_a | indices_b == indices_all, "A ∪ B != all"
+
+def test_invalid_subset_raises_error():
+    with pytest.raises(AssertionError):
+        get_cifar100_loaders(subset="C")
