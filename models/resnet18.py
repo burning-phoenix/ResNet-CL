@@ -3,12 +3,13 @@ import torch.nn as nn
 from torchvision.models import resnet18
 
 from config import FEATURE_DIM, NUM_COARSE_CLASSES, NUM_FINE_CLASSES
+from data.cifar100 import FINE_TO_COARSE
 
 
 class MultiHeadResNet18(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        backbone = resnet18(pretrained=False)
+        backbone = resnet18(weights=None)
         backbone.fc = nn.Identity()
         self.backbone = backbone
 
@@ -49,3 +50,18 @@ class MultiHeadResNet18(nn.Module):
 
         for param in head.parameters():
             param.requires_grad = False
+
+    def init_coarse_from_fine(self) -> None:
+        """Aggregates fine-head weights/biases into the coarse head."""
+        children_by_coarse = {}
+        for coarse_id in range(NUM_COARSE_CLASSES):
+            children_by_coarse[coarse_id] = []
+
+        for fine_id in range(NUM_FINE_CLASSES):
+            coarse_id = FINE_TO_COARSE[fine_id]
+            children_by_coarse[coarse_id].append(fine_id)
+
+        with torch.no_grad():
+            for coarse_id, fine_ids in children_by_coarse.items():
+                self.coarse_head.weight[coarse_id] = self.fine_head.weight[fine_ids].mean(dim=0)
+                self.coarse_head.bias[coarse_id] = self.fine_head.bias[fine_ids].mean()
