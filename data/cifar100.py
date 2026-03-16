@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision.datasets import CIFAR100
@@ -15,10 +17,29 @@ from config import (
 TARGET_FINE_INDICES = set(FINE_REMAP.keys())
 
 class CIFAR100SubDataset(Dataset):
-    def __init__(self, root, train=True, transform=None):
+    def __init__(self, root, train=True, transform=None, subset = "all"):
+        assert subset in ("A", "B", "all"), \
+            f"subset must be 'A', 'B', or 'all', got '{subset}'"
         self.dataset = CIFAR100(root=root, train=train, download=True, transform=transform)
         # Filter the indices to only relevant classes
-        self.indices = [i for i in range(len(self.dataset)) if self.dataset[i][1] in TARGET_FINE_INDICES]
+
+        if not train or subset == "all":
+            self.indices = [i for i in range(len(self.dataset)) if self.dataset[i][1] in TARGET_FINE_INDICES]
+        else:
+            self.indices = []
+            fine_to_indices = defaultdict(list)
+            for i in range(len(self.dataset)):
+                fine = self.dataset[i][1]
+                if fine in TARGET_FINE_INDICES:
+                    fine_to_indices[fine].append(i)
+            
+            for fine, indices in fine_to_indices.items():
+                indices = sorted(indices)  # For deterministic splitting
+                half = len(indices) // 2
+                if subset == "A":
+                    self.indices.extend(indices[:half])
+                elif subset == "B":
+                    self.indices.extend(indices[half:])
 
     def __len__(self):
         return len(self.indices)
@@ -31,7 +52,7 @@ class CIFAR100SubDataset(Dataset):
         y_fine   = torch.tensor(fine, dtype = torch.int)
         return img, y_coarse, y_fine
     
-def get_cifar100_loaders(batch_size=DEFAULT_BATCH_SIZE, augment=True):
+def get_cifar100_loaders(batch_size=DEFAULT_BATCH_SIZE, augment=True, subset = "all"):
     """
     Returns:
         train_loader: yields (x, y_coarse, y_fine)
@@ -64,14 +85,14 @@ def get_cifar100_loaders(batch_size=DEFAULT_BATCH_SIZE, augment=True):
     ])
 
     train_loader = DataLoader(
-        CIFAR100SubDataset(root=DATASETS_DIR, train=True, transform=train_transform),
+        CIFAR100SubDataset(root=DATASETS_DIR, train=True, transform=train_transform, subset=subset),
         batch_size=batch_size,
         shuffle=True,
         num_workers=NUM_WORKERS,
     )
 
     test_loader = DataLoader(
-        CIFAR100SubDataset(root=DATASETS_DIR, train=False, transform=test_transform),
+        CIFAR100SubDataset(root=DATASETS_DIR, train=False, transform=test_transform, subset="all"),
         batch_size=batch_size,
         shuffle=False,
         num_workers=NUM_WORKERS,
