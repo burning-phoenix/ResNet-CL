@@ -17,7 +17,9 @@ from config import (
 TARGET_FINE_INDICES = set(FINE_REMAP.keys())
 
 class CIFAR100SubDataset(Dataset):
-    def __init__(self, root, train=True, transform=None, subset = "all" | "A" | "B"):
+    def __init__(self, root, train=True, transform=None, subset = "all"):
+        assert subset in ("A", "B", "all"), \
+            f"subset must be 'A', 'B', or 'all', got '{subset}'"
         self.dataset = CIFAR100(root=root, train=train, download=True, transform=transform)
         # Filter the indices to only relevant classes
 
@@ -50,7 +52,7 @@ class CIFAR100SubDataset(Dataset):
         y_fine   = torch.tensor(fine, dtype = torch.int)
         return img, y_coarse, y_fine
     
-def get_cifar100_loaders(batch_size=DEFAULT_BATCH_SIZE, augment=True, subset = "all" | "A" | "B"):
+def get_cifar100_loaders(batch_size=DEFAULT_BATCH_SIZE, augment=True, subset = "all"):
     """
     Returns:
         train_loader: yields (x, y_coarse, y_fine)
