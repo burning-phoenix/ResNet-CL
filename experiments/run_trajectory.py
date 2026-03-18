@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
 import torch
 import numpy as np
 import os
@@ -34,14 +41,19 @@ def experiment(trajectory, condition, lambda_ewc, lambda_l2, seed):
     R[0,0] = evaluate(model, test_loader, t1)["accuracy"]
     R[0,1] = evaluate(model, test_loader, t2)["accuracy"]
     
-    Tstar = {n: p.clone().detach() for n, p in model.get_backbone_params()}    
+    # Snapshot backbone params by name so ewc_penalty / l2_cl_penalty can match them.
+    if hasattr(model, "backbone"):
+        Tstar = {n: p.clone().detach() for n, p in model.backbone.named_parameters()}
+    else:
+        Tstar = {n: p.clone().detach() for n, p in model.named_parameters()}
+
     if trajectory == "coarse_to_fine":
         model.init_coarse_from_fine()
     
     
     penalty_fn = None
     if condition == "ewc":
-        fisher_dict = compute_fisher(model, train_loader, DEFAULT_FISHER_SAMPLES) # No variant since removed as per Teams message
+        fisher_dict = compute_fisher(model, train_loader, task_id=t1, n_samples=DEFAULT_FISHER_SAMPLES)
         penalty_fn = lambda m: ewc_penalty(m, fisher_dict, Tstar, lambda_ewc)
     elif condition == "l2":
         penalty_fn = lambda m: l2_cl_penalty(m, Tstar, lambda_l2)
@@ -71,4 +83,9 @@ def experiment(trajectory, condition, lambda_ewc, lambda_l2, seed):
     os.makedirs(LOG_DIR, exist_ok=True)
     with open(logFile, "w") as f:
         json.dump(Output, f)
+    print(Output)
+    
+if __name__ == "__main__":
+    experiment("coarse_to_fine", "ewc", 400, 0.01, 42)
+
         

@@ -26,8 +26,8 @@ def evaluate(model, test_loader, task_id):
             
             preds.append(predicted)
             labels.append(y)
-    preds = torch.cat(preds).numpy()
-    labels = torch.cat(labels).numpy()
+    preds = torch.cat(preds).cpu().numpy()
+    labels = torch.cat(labels).cpu().numpy()
     acc = (preds == labels).mean()
     
     PclassF1arr = f1_score(labels, preds, average=None)
