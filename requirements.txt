@@ -1,4 +1,7 @@
 torch
+torchvision
 tqdm
 scikit-learn
 numpy
+matplotlib
+pytest
