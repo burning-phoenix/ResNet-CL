@@ -41,13 +41,8 @@ def experiment(trajectory, condition, lambda_ewc, lambda_l2, seed):
     R[0,0] = evaluate(model, test_loader, t1)["accuracy"]
     R[0,1] = evaluate(model, test_loader, t2)["accuracy"]
     
-    # Snapshot backbone params by name so ewc_penalty / l2_cl_penalty can match them.
-    if hasattr(model, "backbone"):
-        Tstar = {n: p.clone().detach() for n, p in model.backbone.named_parameters()}
-    else:
-        Tstar = {n: p.clone().detach() for n, p in model.named_parameters()}
-
-    if trajectory == "coarse_to_fine":
+    Tstar = {n: p.clone().detach() for n, p in model.get_backbone_params()}    
+    if trajectory == "fine_to_coarse":
         model.init_coarse_from_fine()
     
     
@@ -62,7 +57,8 @@ def experiment(trajectory, condition, lambda_ewc, lambda_l2, seed):
     
     
     train_one_phase(model, train_loader, t2, optimizer, DEFAULT_EPOCHS_PER_TASK, penalty_fn)
-    
+    save_checkpoint(model, optimizer, DEFAULT_EPOCHS_PER_TASK, t2)
+
     R[1,0] = evaluate(model, test_loader, t1)["accuracy"]
     R[1,1] = evaluate(model, test_loader, t2)["accuracy"]
     
