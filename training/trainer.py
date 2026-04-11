@@ -54,7 +54,7 @@ def train_one_phase(model, loader, task_id, optimizer, epochs, penalty_fn=None):
     return training_log
 
 
-def save_checkpoint(model, optimizer, epoch, task_id):
+def save_checkpoint(model, optimizer, epoch, task_id, run_tag=None):
     """Saves a checkpoint.
 
     Args:
@@ -62,6 +62,7 @@ def save_checkpoint(model, optimizer, epoch, task_id):
         optimizer (torch.optim.Optimizer): The optimizer to save.
         epoch (int): The epoch number.
         task_id (str): The task id.
+        run_tag: Optional disambiguator when running many experiments (filename prefix).
     """
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
     checkpoint = {
@@ -70,10 +71,15 @@ def save_checkpoint(model, optimizer, epoch, task_id):
         "model_state_dict": model.state_dict(),
         "optimizer_state_dict": optimizer.state_dict()
     }
-    torch.save(checkpoint, os.path.join(CHECKPOINT_DIR, f"checkpoint_{task_id}_{epoch}.pth"))
-    
-    
-def load_checkpoint(model, optimizer, epoch, task_id):
+    fname = (
+        f"checkpoint_{run_tag}_{task_id}_{epoch}.pth"
+        if run_tag
+        else f"checkpoint_{task_id}_{epoch}.pth"
+    )
+    torch.save(checkpoint, os.path.join(CHECKPOINT_DIR, fname))
+
+
+def load_checkpoint(model, optimizer, epoch, task_id, run_tag=None):
     """Loads a checkpoint.
 
     Args:
@@ -81,9 +87,15 @@ def load_checkpoint(model, optimizer, epoch, task_id):
         optimizer (torch.optim.Optimizer): The optimizer to load.
         epoch (int): The epoch number.
         task_id (str): The task id.
+        run_tag: Same tag used when saving, if any.
     """
-    
-    path = os.path.join(CHECKPOINT_DIR, f"checkpoint_{task_id}_{epoch}.pth")
+
+    fname = (
+        f"checkpoint_{run_tag}_{task_id}_{epoch}.pth"
+        if run_tag
+        else f"checkpoint_{task_id}_{epoch}.pth"
+    )
+    path = os.path.join(CHECKPOINT_DIR, fname)
     if not os.path.exists(path) or not os.path.isfile(path):
         raise FileNotFoundError(f"Checkpoint file {path} not found")
     

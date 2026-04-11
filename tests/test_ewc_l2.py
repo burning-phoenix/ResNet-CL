@@ -1,8 +1,7 @@
 """
 Tests for training/ewc.py and training/l2_cl.py.
 
-Run from project root:
-    PYTHONPATH=training python -m pytest tests/test_ewc_l2.py -v
+Run from project root: python -m pytest tests/test_ewc_l2.py -v
 """
 
 import pytest
@@ -10,8 +9,8 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 
-from ewc import compute_fisher, ewc_penalty, snapshot_backbone
-from l2_cl import l2_cl_penalty
+from training.ewc import compute_fisher, ewc_penalty, snapshot_backbone
+from training.l2_cl import l2_cl_penalty
 
 
 class AnalyticBinaryModel(nn.Module):

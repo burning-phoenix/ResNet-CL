@@ -1,6 +1,13 @@
 import torch
 import torch.nn as nn
-from config import FEATURE_DIM, NUM_COARSE_CLASSES, NUM_FINE_CLASSES, INPUT_CHANNELS, INPUT_SIZE
+from config import (
+    FEATURE_DIM,
+    FINE_TO_COARSE,
+    INPUT_CHANNELS,
+    INPUT_SIZE,
+    NUM_COARSE_CLASSES,
+    NUM_FINE_CLASSES,
+)
 
 class MultiHeadLogReg(nn.Module):
     def __init__(self) -> None:
@@ -41,7 +48,6 @@ class MultiHeadLogReg(nn.Module):
         return self.backbone(x)
 
     def freeze_head(self, task_id: str) -> None:
-        """Sets requires_grad=False for all parameters in the specified head."""
         if task_id == "coarse":
             head = self.coarse_head
         elif task_id == "fine":
@@ -51,3 +57,12 @@ class MultiHeadLogReg(nn.Module):
 
         for param in head.parameters():
             param.requires_grad = False
+
+    def init_coarse_from_fine(self) -> None:
+        children_by_coarse = {c: [] for c in range(NUM_COARSE_CLASSES)}
+        for fine_id in range(NUM_FINE_CLASSES):
+            children_by_coarse[FINE_TO_COARSE[fine_id]].append(fine_id)
+        with torch.no_grad():
+            for coarse_id, fine_ids in children_by_coarse.items():
+                self.coarse_head.weight[coarse_id] = self.fine_head.weight[fine_ids].mean(dim=0)
+                self.coarse_head.bias[coarse_id] = self.fine_head.bias[fine_ids].mean()

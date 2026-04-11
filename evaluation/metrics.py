@@ -39,20 +39,19 @@ def evaluate(model, test_loader, task_id):
         "macro_f1": float(f1_score(labels, preds, average="macro"))
     }
     
-def compute_cl_metrics(R):
-    """Computes the CL metrics.
+def compute_cl_metrics(R, task2_num_classes: int):
+    """Continual learning metrics from the 2×2 accuracy matrix R (paper Table 5).
 
     Args:
-        R (numpy.ndarray): The accuracy matrix.
+        R: R[i,j] = accuracy on task j+1 after training task i+1 (0-based indices).
+        task2_num_classes: K for Task 2; FWT uses zero-shot baseline 1/K.
     """
-    bwt = R[1,0] - R[0,0]
-    forgetting = R[0,0] - R[1,0]
-    
-    random_chance = 0.01
-    fwt = R[0, 1] - random_chance
-    
+    bwt = R[1, 0] - R[0, 0]
+    forgetting = R[0, 0] - R[1, 0]
+    fwt = R[0, 1] - (1.0 / task2_num_classes)
+
     return {
         "bwt": float(bwt),
         "forgetting": float(forgetting),
-        "fwt": float(fwt)
+        "fwt": float(fwt),
     }

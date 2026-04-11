@@ -2,3 +2,6 @@ __pycache__
 datasets/
 .vscode
 .pytest_cache
+/logs
+/results
+Association_for_Computational_Linguistics__ACL__conference (2).pdf

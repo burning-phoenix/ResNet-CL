@@ -48,8 +48,8 @@ class CIFAR100SubDataset(Dataset):
         img, fine = self.dataset[self.indices[idx]]
         fine = FINE_REMAP[fine]
         coarse = FINE_TO_COARSE[fine]
-        y_coarse = torch.tensor(coarse, dtype=torch.int)
-        y_fine   = torch.tensor(fine, dtype = torch.int)
+        y_coarse = torch.tensor(coarse, dtype=torch.long)
+        y_fine = torch.tensor(fine, dtype=torch.long)
         return img, y_coarse, y_fine
     
 def get_cifar100_loaders(batch_size=DEFAULT_BATCH_SIZE, augment=True, subset = "all"):

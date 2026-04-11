@@ -12,7 +12,7 @@ from config import NUM_COARSE_CLASSES, NUM_FINE_CLASSES
 def test_e_compute_cl_metrics_shape():
     """compute_cl_metrics returns dict with bwt, forgetting, fwt."""
     R = np.array([[0.8, 0.1], [0.7, 0.6]])
-    out = compute_cl_metrics(R)
+    out = compute_cl_metrics(R, task2_num_classes=10)
     assert "bwt" in out
     assert "forgetting" in out
     assert "fwt" in out
@@ -21,25 +21,25 @@ def test_e_compute_cl_metrics_shape():
 def test_e_compute_cl_metrics_bwt_forgetting():
     """bwt = R[1,0] - R[0,0], forgetting = R[0,0] - R[1,0]."""
     R = np.array([[0.8, 0.1], [0.7, 0.6]])
-    out = compute_cl_metrics(R)
+    out = compute_cl_metrics(R, task2_num_classes=10)
     assert out["bwt"] == pytest.approx(-0.1)
     assert out["forgetting"] == pytest.approx(0.1)
 
 
 def test_e_compute_cl_metrics_fwt():
-    """fwt = R[0,1] - random_chance (0.01)."""
+    """fwt = R[0,1] - 1/K (paper Table 5)."""
     R = np.array([[0.8, 0.15], [0.7, 0.6]])
-    out = compute_cl_metrics(R)
-    assert out["fwt"] == pytest.approx(0.14)
+    out = compute_cl_metrics(R, task2_num_classes=10)
+    assert out["fwt"] == pytest.approx(0.15 - 0.1)
 
 
 def test_e_compute_cl_metrics_numpy():
     """Accepts numpy array (as used in run_trajectory)."""
     R = np.array([[0.9, 0.02], [0.85, 0.8]])
-    out = compute_cl_metrics(R)
+    out = compute_cl_metrics(R, task2_num_classes=10)
     assert out["bwt"] == pytest.approx(-0.05)
     assert out["forgetting"] == pytest.approx(0.05)
-    assert out["fwt"] == pytest.approx(0.01)
+    assert out["fwt"] == pytest.approx(0.02 - 0.1)
 
 
 # ---- evaluate (needs model + loader) ----
